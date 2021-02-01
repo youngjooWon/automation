@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "c:\\Users\\82107\\Desktop\\BusinessAutomation\\BusinessAutomation\\Scripts\\python.exe"
+    "python.pythonPath": "c:\\Users\\82107\\Desktop\\BusinessAutomation\\BusinessAutomation\\Scripts\\python.exe",
+    "python.linting.pylintArgs": ["--generate-members"]
 }
