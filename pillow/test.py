@@ -10,6 +10,8 @@
 
 import html
 from google.cloud import texttospeech
+import os
+from pydub import AudioSegment
 
 def ssml_to_audio(ssml_text, outfile):
     # Instantiates a client
@@ -53,17 +55,51 @@ def text_to_ssml(inputfile):
 
     # Convert plaintext to SSML
     # Wait two seconds between each address
-    ssml = "<speak><prosody rate='50%'>{}</prosody></speak>".format(
-        escaped_lines.replace("  ", '<break time="2s"/>')
+    ssml = "<speak><prosody rate='80%'>{}</prosody></speak>".format(
+        escaped_lines.replace("**", '<lang xml:lang="ko-KR">').replace("*", '</lang>')
     )
     print(escaped_lines)
     print(ssml)
     # Return the concatenated string of ssml script
     return ssml
 
+def list_voices():
+    """Lists the available voices."""
+    from google.cloud import texttospeech
+
+    client = texttospeech.TextToSpeechClient()
+
+    # Performs the list voices request
+    voices = client.list_voices()
+
+    for voice in voices.voices:
+        # Display the voice's name. Example: tpc-vocoded
+        print(f"Name: {voice.name}")
+
+        # Display the supported language codes for this voice. Example: "en-US"
+        for language_code in voice.language_codes:
+            print(f"Supported language: {language_code}")
+
+        ssml_gender = texttospeech.SsmlVoiceGender(voice.ssml_gender)
+
+        # Display the SSML Voice Gender
+        print(f"SSML Voice Gender: {ssml_gender.name}")
+
+        # Display the natural sample rate hertz for this voice. Example: 24000
+        print(f"Natural Sample Rate Hertz: {voice.natural_sample_rate_hertz}\n")
 
 
-text = """abandon  contract  intrude  be accustomed to ing  show off  oversee  entrust  dispatch  initiate  """
+text = """**버려지다* contract intrude  be accustomed to ing  show off  oversee  entrust  dispatch  initiate  """
 
+print(text)
 ssml = text_to_ssml(text)
 ssml_to_audio(ssml, "test.mp3")
+
+sound1 = AudioSegment.from_mp3("C:\image\sounds.mp3")
+sound2 = AudioSegment.from_mp3("C:\image\sounds_ko.mp3")
+
+# sound1, with sound2 appended (use louder instead of sound1 to append the louder version)
+combined = sound1 + sound2
+
+# save the result
+combined.export("C:\image\mixed_sounds.mp3", format="mp3")

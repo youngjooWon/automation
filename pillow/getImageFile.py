@@ -28,6 +28,7 @@ b,g,r,a = 255,255,255,0
 count = 1
 
 soundList = []
+soundList_ko = []
 
 def combine_audio(vidname, audname, outname, fps=25):
     import moviepy.editor as mpe
@@ -36,7 +37,7 @@ def combine_audio(vidname, audname, outname, fps=25):
     final_clip = my_clip.set_audio(audio_background)
     final_clip.write_videofile(outname,fps=fps)
 
-def ssml_to_audio(ssml_text, outfile):
+def ssml_to_audio(ssml_text, outfile, lang):
     # Instantiates a client
     client = texttospeech.TextToSpeechClient()
 
@@ -46,7 +47,7 @@ def ssml_to_audio(ssml_text, outfile):
     # Builds the voice request, selects the language code ("en-US") and
     # the SSML voice gender ("MALE")
     voice = texttospeech.VoiceSelectionParams(
-        language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.FEMALE
+        language_code=lang, ssml_gender=texttospeech.SsmlVoiceGender.FEMALE
     )
 
     # Selects the type of audio file to return
@@ -95,13 +96,14 @@ for i in load_ws.rows:
         kor = i[4].value
         imgNm = "C:\image\sample" + str(count) + ".png"
         if len(eng) >= 13 :
-            draw.text((80, 310), eng, font=selectedFont, fill=(b,g,r,a))
+            draw.text((70, 310), eng, font=selectedFont, fill=(b,g,r,a))
             eng = eng + "1 " 
         else :
             draw.text((350, 310), eng, font=selectedFont, fill=(b,g,r,a))
             eng = eng + "0 "
         word = eng + " : " + kor
         soundList.append(eng)
+        soundList_ko.append(kor)
         draw.text((700,310), kor, font=selectedFont, fill=(b,g,r,a))
         target_image.save(imgNm) #편집된 이미지를 저장합니다.
         #img_list.append(Image.open(imgNm))
@@ -112,7 +114,10 @@ print(''.join(soundList))
 lang = 'en'
 
 ssml = text_to_ssml(''.join(soundList))
-ssml_to_audio(ssml, "C:\image\sounds.mp3")
+ssml_to_audio(ssml, "C:\image\sounds.mp3", "en-US")
+
+ssml_ko = text_to_ssml(''.join(soundList_ko))
+ssml_to_audio(ssml_ko, "C:\image\sounds_ko.mp3", "ko-KR")
 
 # output = gTTS(text = str(soundList), lang = lang, slow = False)
 # output.save("C:\image\sounds.mp3")
