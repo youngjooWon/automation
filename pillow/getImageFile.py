@@ -12,6 +12,7 @@ from playsound import playsound
 from moviepy.editor import *
 import html
 from google.cloud import texttospeech
+from pydub import AudioSegment
 
 import ffmpeg
 import natsort
@@ -22,13 +23,10 @@ load_wb = load_workbook("C:\excel_file\sampleFile1.xlsx", data_only=True)
 load_ws = load_wb['Sheet1']
 max_row = load_ws.max_row
 
-selectedFont =ImageFont.truetype("HMKMRHD.TTF", 35) #폰트경로과 사이즈를 설정해줍니다.
+selectedFont =ImageFont.truetype("SCDream7.otf", 35) #폰트경로과 사이즈를 설정해줍니다.
 b,g,r,a = 255,255,255,0
 
 count = 1
-
-soundList = []
-soundList_ko = []
 
 def combine_audio(vidname, audname, outname, fps=25):
     import moviepy.editor as mpe
@@ -38,6 +36,7 @@ def combine_audio(vidname, audname, outname, fps=25):
     final_clip.write_videofile(outname,fps=fps)
 
 def ssml_to_audio(ssml_text, outfile, lang):
+
     # Instantiates a client
     client = texttospeech.TextToSpeechClient()
 
@@ -64,9 +63,8 @@ def ssml_to_audio(ssml_text, outfile, lang):
     # Writes the synthetic audio to the output file.
     with open(outfile, "wb") as out:
         out.write(response.audio_content)
-        print("Audio content written to file " + outfile)
 
-def text_to_ssml(inputfile):
+def text_to_ssml(inputfile, speed):
 
     raw_lines = inputfile
 
@@ -79,14 +77,14 @@ def text_to_ssml(inputfile):
 
     # Convert plaintext to SSML
     # Wait two seconds between each address
-    ssml = "<speak><prosody rate='90%'>{}</prosody></speak>".format(
-        escaped_lines.replace("1 ", '<break time="0.2s"/>').replace("0 ", '<break time="0.8s"/>')
+    ssml = "<speak><prosody rate='"+ speed + "'>{}</prosody></speak>".format(
+        escaped_lines.replace("1 ", '<break time="0.7s"/>').replace("0 ", '<break time="1.2s"/>').replace("2 ", '<break time="0.1s"/>')
     )
-    print(ssml)
 
     # Return the concatenated string of ssml script
     return ssml
 
+print("파일 읽는 중 입니다..")
 
 for i in load_ws.rows:
     try:
@@ -94,34 +92,64 @@ for i in load_ws.rows:
         draw = ImageDraw.Draw(target_image) 
         eng = i[3].value
         kor = i[4].value
-        imgNm = "C:\image\sample" + str(count) + ".png"
-        if len(eng) >= 13 :
-            draw.text((70, 310), eng, font=selectedFont, fill=(b,g,r,a))
+        word = eng + " : " + kor
+
+        print(str(count) + ". " + word)
+        
+        imgNm = "C:\image\png" + str(count) + ".png"
+        audioNm = "C:\image\\audio" + str(count) + ".mp3"
+        audioKoNm = "C:\image\\audioKo" + str(count) + ".mp3"
+        
+        draw.text((80, 50), str(count), font=ImageFont.truetype("SCDream7.otf", 35), fill=(160,161,157,a))
+
+        if len(eng) >= 13 or len(kor) >= 7:
+            if len(eng) >= 13 :
+                draw.text((130, 310), eng, font=selectedFont, fill=(b,g,r,a))
+            else:
+                draw.text((380, 310), eng, font=selectedFont, fill=(b,g,r,a))
+            
+            if len(kor) >= 16 :
+                draw.text((720,310), kor[0:17], font=selectedFont, fill=(b,g,r,a))
+                draw.text((720,410), kor[17:], font=selectedFont, fill=(b,g,r,a))
+            else :
+                draw.text((720,310), kor, font=selectedFont, fill=(b,g,r,a))
+
             eng = eng + "1 " 
+            kor = kor + "2 "
         else :
             draw.text((350, 310), eng, font=selectedFont, fill=(b,g,r,a))
+            draw.text((700,310), kor, font=selectedFont, fill=(b,g,r,a))
             eng = eng + "0 "
-        word = eng + " : " + kor
-        soundList.append(eng)
-        soundList_ko.append(kor)
-        draw.text((700,310), kor, font=selectedFont, fill=(b,g,r,a))
-        target_image.save(imgNm) #편집된 이미지를 저장합니다.
-        #img_list.append(Image.open(imgNm))
+            kor = kor + "0 "
+        
+        target_image.save(imgNm,"PNG") #편집된 이미지를 저장합니다.
+        
+        ssml = text_to_ssml(eng, "102%")
+        if len(kor) >= 16 :
+            ssml_ko = text_to_ssml(kor, "140%")
+        else:
+            ssml_ko = text_to_ssml(kor, "102%")   
+
+        ssml_to_audio(ssml, audioNm, "en-US")
+        ssml_to_audio(ssml_ko, audioKoNm, "ko-KR")
+
+        sound1 = AudioSegment.from_mp3(audioNm)
+        sound2 = AudioSegment.from_mp3(audioKoNm)
+
+        # sound1, with sound2 appended (use louder instead of sound1 to append the louder version)
+        combined = sound1 + sound2
+
+        # save the result
+        combined.export("C:\image\mixed_sounds" + str(count) + ".mp3", format="mp3")
+
+        # delete file
+        #os.remove(audioNm)
+        #os.remove(audioKoNm)
+
         count = count + 1   
     except: pass
-print(soundList)
-print(''.join(soundList))
-lang = 'en'
 
-ssml = text_to_ssml(''.join(soundList))
-ssml_to_audio(ssml, "C:\image\sounds.mp3", "en-US")
-
-ssml_ko = text_to_ssml(''.join(soundList_ko))
-ssml_to_audio(ssml_ko, "C:\image\sounds_ko.mp3", "ko-KR")
-
-# output = gTTS(text = str(soundList), lang = lang, slow = False)
-# output.save("C:\image\sounds.mp3")
-
+# images to video
 path = "C:\image"
 paths = [os.path.join(path , i ) for i in os.listdir(path) if re.search(".png$", i )]
 
@@ -132,17 +160,14 @@ for i in paths :
 
 paths = natsort.natsorted(store1)
 
-print(paths)
-
-pathIn= 'C:\image'
 pathOut = 'C:\image\words.mp4'
-fps = 0.7
+fps = 0.3
 
 frame_array = []
 for idx , path in enumerate(paths) : 
     img = cv2.imread(path)
     height, width, layers = img.shape
-    size = (width,height)
+    size = (width, height)
     frame_array.append(img)
 out = cv2.VideoWriter(pathOut,cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
 for i in range(len(frame_array)):
@@ -150,14 +175,19 @@ for i in range(len(frame_array)):
     out.write(frame_array[i])
 out.release()
 
-# videoclip = VideoFileClip("C:\image\words.mp4")
-# audioclip = AudioFileClip("C:\image\sounds.mp3")
+combined = AudioSegment.empty()
+directory = r'C:/image/' 
 
-# new_audioclip = CompositeAudioClip([audioclip.set_start(5)])
-# videoclip.audio = new_audioclip
-# videoclip.write_videofile("C:\image\combine.mp4")
-
+for file in natsort.natsorted(os.listdir(directory)):
+    if file.endswith('.png'): 
+        original_path = directory + file
+        os.remove(original_path)
+    if file.startswith('mix') and file.endswith('.mp3'):
+        audiofile = AudioSegment.from_mp3(directory + file)
+        combined += audiofile
+        # save the result
+        combined.export("C:\image\\all_mixed_sounds.mp3", format="mp3")
 
 if __name__ == "__main__":
-	combine_audio("C:\image\words.mp4","C:\image\sounds.mp3","C:\image\ddd.mp4")
+   combine_audio("C:\image\words.mp4","C:\image\\all_mixed_sounds.mp3","C:\image\done.mp4")
 

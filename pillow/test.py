@@ -1,17 +1,15 @@
-# def combine_audio(vidname, audname, outname, fps=25):
-#     import moviepy.editor as mpe
-#     my_clip = mpe.VideoFileClip(vidname)
-#     audio_background = mpe.AudioFileClip(audname)
-#     final_clip = my_clip.set_audio(audio_background)
-#     final_clip.write_videofile(outname,fps=fps)
-
-# if __name__ == "__main__":
-# 	combine_audio("C:\image\words.mp4","C:\image\sounds.mp3","C:\image\ddd.mp4")
-
 import html
 from google.cloud import texttospeech
-import os
+import os, glob
+import os.path
 from pydub import AudioSegment
+import re
+import natsort
+import cv2 
+from pydub.playback import play
+from playsound import playsound
+from PIL import Image
+
 
 def ssml_to_audio(ssml_text, outfile):
     # Instantiates a client
@@ -94,12 +92,24 @@ text = """**버려지다* contract intrude  be accustomed to ing  show off  over
 print(text)
 ssml = text_to_ssml(text)
 ssml_to_audio(ssml, "test.mp3")
-
-sound1 = AudioSegment.from_mp3("C:\image\sounds.mp3")
-sound2 = AudioSegment.from_mp3("C:\image\sounds_ko.mp3")
-
+'''
 # sound1, with sound2 appended (use louder instead of sound1 to append the louder version)
-combined = sound1 + sound2
+combined = AudioSegment.from_mp3("C:\image\mixed_sounds1.mp3") + AudioSegment.from_mp3("C:\image\mixed_sounds2.mp3")
 
 # save the result
 combined.export("C:\image\mixed_sounds.mp3", format="mp3")
+'''
+'''
+directory = r'C:/image/' # See that i use / other way
+for file in os.listdir(directory):
+    print(file)
+
+path = "C:\image"
+
+dated_files = [(os.path.getmtime(fn), os.path.basename(fn)) 
+               for fn in os.listdir(path) if fn.lower().endswith('.mp3')]
+dated_files.sort()
+dated_files.reverse()
+newest = dated_files[0][1]
+print(newest)
+'''
