@@ -85,7 +85,7 @@ def text_to_ssml(inputfile, speed):
     # Convert plaintext to SSML
     # Wait two seconds between each address
     ssml = "<speak><prosody rate='"+ speed + "'>{}</prosody></speak>".format(
-        escaped_lines.replace("1 ", '<break time="0.7s"/>').replace("0 ", '<break time="1.2s"/>').replace("2 ", '<break time="0.2s"/>')
+        escaped_lines.replace("0 ", '<break time="2s"/>').replace("1 ", '<break time="1.5s"/>').replace("2 ", '<break time="1s"/>').replace("3 ", '<break time="0.7s"/>')
     )
 
     # Return the concatenated string of ssml script
@@ -112,30 +112,34 @@ for i in load_ws.rows:
         if len(eng) >= 13 or len(kor) >= 7:
             if len(eng) >= 13 :
                 draw.text((130, 310), eng, font=selectedFont, fill=(b,g,r,a))
+            elif len(eng) >= 9 : 
+                draw.text((320, 310), eng, font=selectedFont, fill=(b,g,r,a))
             else:
                 draw.text((400, 310), eng, font=selectedFont, fill=(b,g,r,a))
             
             if len(kor) >= 16 :
-                draw.text((720,310), kor[0:17], font=selectedFont, fill=(b,g,r,a))
-                draw.text((720,410), kor[17:], font=selectedFont, fill=(b,g,r,a))
+                draw.text((720, 310), kor[0:17], font=selectedFont, fill=(b,g,r,a))
+                draw.text((720, 410), kor[17:], font=selectedFont, fill=(b,g,r,a))
+                kor = kor + "3 "
             else :
-                draw.text((720,310), kor, font=selectedFont, fill=(b,g,r,a))
-
+                draw.text((720, 310), kor, font=selectedFont, fill=(b,g,r,a))
+                kor = kor + "2 "
+            
             eng = eng + "1 " 
-            kor = kor + "2 "
+            
         else :
             draw.text((400, 310), eng, font=selectedFont, fill=(b,g,r,a))
-            draw.text((700,310), kor, font=selectedFont, fill=(b,g,r,a))
+            draw.text((700, 310), kor, font=selectedFont, fill=(b,g,r,a))
             eng = eng + "0 "
             kor = kor + "0 "
         
         target_image.save(imgNm,"PNG") # 편집된 이미지 저장
         
-        ssml = text_to_ssml(eng, "102%")
-        if len(kor) >= 16 :
-            ssml_ko = text_to_ssml(kor, "130%")
+        ssml = text_to_ssml(eng, "100%")
+        if len(kor) >= 10 :
+            ssml_ko = text_to_ssml(kor, "110%")
         else:
-            ssml_ko = text_to_ssml(kor, "102%")   
+            ssml_ko = text_to_ssml(kor, "100%")   
 
         ssml_to_audio(ssml, audioNm, "en-US")
         ssml_to_audio(ssml_ko, audioKoNm, "ko-KR")
@@ -144,14 +148,15 @@ for i in load_ws.rows:
         sound2 = AudioSegment.from_mp3(audioKoNm)
 
         # sound1, with sound2 appended (use louder instead of sound1 to append the louder version)
+
         combined = sound1 + sound2
 
         # save the result
         combined.export("C:\\ttsInExcel\\audio_mixed_sounds" + str(count) + ".mp3", format="mp3")
 
         # delete file
-        #os.remove(audioNm)
-        #os.remove(audioKoNm)
+        os.remove(audioNm)
+        os.remove(audioKoNm)
 
         count = count + 1   
     except: pass
@@ -168,7 +173,7 @@ for i in paths :
 paths = natsort.natsorted(store1)
 
 pathOut = 'C:\\ttsInExcel\\all_mixed_words.mp4'
-fps = 0.3
+fps = 0.2
 
 frame_array = []
 for idx , path in enumerate(paths) : 
