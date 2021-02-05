@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['getImageFile.py'],
+a = Analysis(['C:\\Users\\82107\\Desktop\\BusinessAutomation\\pillow\\getImageFile.py'],
              pathex=['C:\\Users\\82107\\Desktop\\BusinessAutomation\\pillow'],
              binaries=[],
              datas=[],

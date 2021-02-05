@@ -9,21 +9,34 @@ import imageio
 import re
 from gtts import gTTS
 from playsound import playsound
-from moviepy.editor import *
+#from moviepy.editor import *
 import html
 from google.cloud import texttospeech
 from pydub import AudioSegment
 
+from moviepy.video.io.VideoFileClip import VideoFileClip 
+ 
 import ffmpeg
 import natsort
 
+# from PyInstaller.utils.hooks import collect_data_files
+# datas = collect_data_files('grpc')
+
+#  from PyInstaller.utils.hooks import collect_data_files
+#  datas = collect_data_files('PyInstaller')
+ #datas, binaries, hiddenimports = collect_all('PyInstaller')
+import sys
+
+if getattr(sys, 'frozen', False):
+    os.environ['SSL_CERT_FILE'] = os.path.join(sys._MEIPASS, 'lib', 'cert.pem')
+
 #data_only=Ture로 해줘야 수식이 아닌 값으로 받아온다.
-load_wb = load_workbook("C:\excel_file\sampleFile1.xlsx", data_only=True)
+load_wb = load_workbook("C:\\ttsInExcel\include\sampleFile1.xlsx", data_only=True)
 #시트 이름으로 불러오기
 load_ws = load_wb['Sheet1']
 max_row = load_ws.max_row
 
-selectedFont =ImageFont.truetype("SCDream7.otf", 35) #폰트경로과 사이즈를 설정해줍니다.
+selectedFont =ImageFont.truetype("SCDream7.otf", 35) # 폰트경로과 사이즈 설정
 b,g,r,a = 255,255,255,0
 
 count = 1
@@ -68,11 +81,6 @@ def text_to_ssml(inputfile, speed):
 
     raw_lines = inputfile
 
-    # Replace special characters with HTML Ampersand Character Codes
-    # These Codes prevent the API from confusing text with
-    # SSML commands
-    # For example, '<' --> '&lt;' and '&' --> '&amp;'
-
     escaped_lines = html.escape(raw_lines)
 
     # Convert plaintext to SSML
@@ -88,7 +96,7 @@ print("파일 읽는 중 입니다..")
 
 for i in load_ws.rows:
     try:
-        target_image = Image.open('C:\image\img2.jpg')  #일단 기본배경폼 이미지를 open 합니다.
+        target_image = Image.open('C:\\ttsInExcel\\include\\background.jpg')  #일단 기본배경폼 이미지를 open 합니다.
         draw = ImageDraw.Draw(target_image) 
         eng = i[3].value
         kor = i[4].value
@@ -96,9 +104,9 @@ for i in load_ws.rows:
 
         print(str(count) + ". " + word)
         
-        imgNm = "C:\image\png" + str(count) + ".png"
-        audioNm = "C:\image\\audio" + str(count) + ".mp3"
-        audioKoNm = "C:\image\\audioKo" + str(count) + ".mp3"
+        imgNm = "C:\\ttsInExcel\png" + str(count) + ".png"
+        audioNm = "C:\\ttsInExcel\\audio" + str(count) + ".mp3"
+        audioKoNm = "C:\\ttsInExcel\\audioKo" + str(count) + ".mp3"
         
         draw.text((80, 50), str(count), font=ImageFont.truetype("SCDream7.otf", 35), fill=(160,161,157,a))
 
@@ -106,7 +114,7 @@ for i in load_ws.rows:
             if len(eng) >= 13 :
                 draw.text((130, 310), eng, font=selectedFont, fill=(b,g,r,a))
             else:
-                draw.text((380, 310), eng, font=selectedFont, fill=(b,g,r,a))
+                draw.text((400, 310), eng, font=selectedFont, fill=(b,g,r,a))
             
             if len(kor) >= 16 :
                 draw.text((720,310), kor[0:17], font=selectedFont, fill=(b,g,r,a))
@@ -117,12 +125,12 @@ for i in load_ws.rows:
             eng = eng + "1 " 
             kor = kor + "2 "
         else :
-            draw.text((350, 310), eng, font=selectedFont, fill=(b,g,r,a))
+            draw.text((400, 310), eng, font=selectedFont, fill=(b,g,r,a))
             draw.text((700,310), kor, font=selectedFont, fill=(b,g,r,a))
             eng = eng + "0 "
             kor = kor + "0 "
         
-        target_image.save(imgNm,"PNG") #편집된 이미지를 저장합니다.
+        target_image.save(imgNm,"PNG") # 편집된 이미지 저장
         
         ssml = text_to_ssml(eng, "102%")
         if len(kor) >= 16 :
@@ -140,7 +148,7 @@ for i in load_ws.rows:
         combined = sound1 + sound2
 
         # save the result
-        combined.export("C:\image\mixed_sounds" + str(count) + ".mp3", format="mp3")
+        combined.export("C:\\ttsInExcel\\audio_mixed_sounds" + str(count) + ".mp3", format="mp3")
 
         # delete file
         #os.remove(audioNm)
@@ -150,7 +158,7 @@ for i in load_ws.rows:
     except: pass
 
 # images to video
-path = "C:\image"
+path = "C:\\ttsInExcel"
 paths = [os.path.join(path , i ) for i in os.listdir(path) if re.search(".png$", i )]
 
 store1 = []
@@ -160,7 +168,7 @@ for i in paths :
 
 paths = natsort.natsorted(store1)
 
-pathOut = 'C:\image\words.mp4'
+pathOut = 'C:\\ttsInExcel\\all_mixed_words.mp4'
 fps = 0.3
 
 frame_array = []
@@ -176,18 +184,24 @@ for i in range(len(frame_array)):
 out.release()
 
 combined = AudioSegment.empty()
-directory = r'C:/image/' 
+directory = r'C:/ttsInExcel/' 
 
 for file in natsort.natsorted(os.listdir(directory)):
     if file.endswith('.png'): 
         original_path = directory + file
         os.remove(original_path)
-    if file.startswith('mix') and file.endswith('.mp3'):
+    elif file.startswith('audio_mixed') and file.endswith('.mp3'):
         audiofile = AudioSegment.from_mp3(directory + file)
         combined += audiofile
         # save the result
-        combined.export("C:\image\\all_mixed_sounds.mp3", format="mp3")
+        combined.export("C:\\ttsInExcel\\all_mixed_sounds.mp3", format="mp3")
+    if not file.startswith('all_mixed_sounds') and file.endswith('.mp3'):
+        original_path = directory + file
+        os.remove(original_path)
+    
+combine_audio("C:\\ttsInExcel\\all_mixed_words.mp4","C:\\ttsInExcel\\all_mixed_sounds.mp3","C:\\ttsInExcel\\ttsVideo.mp4")
 
-if __name__ == "__main__":
-   combine_audio("C:\image\words.mp4","C:\image\\all_mixed_sounds.mp3","C:\image\done.mp4")
-
+for file in natsort.natsorted(os.listdir(directory)):
+    if file.startswith('all_mixed'):
+        original_path = directory + file
+        os.remove(original_path)
