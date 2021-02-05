@@ -7,14 +7,17 @@ a = Analysis(['getImageFile.py'],
              pathex=['C:\\Users\\82107\\Desktop\\BusinessAutomation\\pillow'],
              binaries=[],
              datas=[],
-             hiddenimports=['Pyinstaller'],
-             hookspath=['C:\\Users\\82107\\Desktop\\BusinessAutomation\\BusinessAutomation\\Lib\\site-packages\\PyInstaller\\hooks\\hook-grpc.py'],
+             hiddenimports=['Pyinstaller,moviepy.editor'],
+             hookspath=['C:\\Users\\82107\\Desktop\\BusinessAutomation\\BusinessAutomation\\Lib\\site-packages\\PyInstaller\\hooks\\hook-Pyinstaller.py'],
              runtime_hooks=[],
              excludes=[],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
              noarchive=False)
+
+a.datas += Tree("C:\\Users\\82107\\Desktop\\BusinessAutomation\\BusinessAutomation\\Lib\\site-packages\\moviepy", prefix='moviepy')
+
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,

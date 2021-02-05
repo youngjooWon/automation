@@ -3,7 +3,6 @@ import PIL
 import numpy as np
 from PIL import Image,ImageDraw,ImageFont
 import os
-import time
 from openpyxl import load_workbook
 import imageio
 import re
@@ -14,7 +13,7 @@ import html
 from google.cloud import texttospeech
 from pydub import AudioSegment
 
-from moviepy.video.io.VideoFileClip import VideoFileClip 
+from moviepy.video.io.VideoFileClip import VideoFileClip as mpe
  
 import ffmpeg
 import natsort
@@ -86,7 +85,7 @@ def text_to_ssml(inputfile, speed):
     # Convert plaintext to SSML
     # Wait two seconds between each address
     ssml = "<speak><prosody rate='"+ speed + "'>{}</prosody></speak>".format(
-        escaped_lines.replace("1 ", '<break time="0.7s"/>').replace("0 ", '<break time="1.2s"/>').replace("2 ", '<break time="0.1s"/>')
+        escaped_lines.replace("1 ", '<break time="0.7s"/>').replace("0 ", '<break time="1.2s"/>').replace("2 ", '<break time="0.2s"/>')
     )
 
     # Return the concatenated string of ssml script
@@ -134,7 +133,7 @@ for i in load_ws.rows:
         
         ssml = text_to_ssml(eng, "102%")
         if len(kor) >= 16 :
-            ssml_ko = text_to_ssml(kor, "140%")
+            ssml_ko = text_to_ssml(kor, "130%")
         else:
             ssml_ko = text_to_ssml(kor, "102%")   
 
